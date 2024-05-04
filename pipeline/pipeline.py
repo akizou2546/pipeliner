@@ -28,13 +28,20 @@ class Paths:
         self.input_dir = os.path.join(current_working_dir_path, "input")
         self.output_dir = os.path.join(current_working_dir_path, "output")
 
+        # 入力
         self.input_sample_csv = os.path.join(self.input_dir, "sample.csv")
 
+        # 出力
         self.output_id_value_csv = os.path.join(self.output_dir, "id_value.csv")
 
 @dataclass
 class Data:
+    # 入力
     sample: pl.DataFrame = field(default_factory=pl.DataFrame)
+
+    # 中間
+
+    # 出力
     id_value: pl.DataFrame = field(default_factory=pl.DataFrame)
 
 class Reader:
@@ -98,24 +105,4 @@ class Writer:
     def write_data(self):
         self.data.id_value.write_csv(self.paths.output_id_value_csv, include_bom=True)
 
-# # チェーンパターンを使用して処理を連結
-# class DataPipeline:
-#     def __init__(self, data_directory):
-#         # 各日付のデータが保存されているディレクトリパス
-#         self.data_directory = data_directory
-    
-#     def process_data(self):
-#         # 読み込むファイルのパスを取得
-#         file_paths = [os.path.join(self.data_directory, file_name) for file_name in os.listdir(self.data_directory) if file_name.endswith(".csv")]
-        
-#         # データの読み込み
-#         reader = DataReader()
-#         data = reader.read_data(file_paths)
-        
-#         # データの前処理、処理、後処理を行う
-#         UppercasePreprocessor.preprocess(data)
-#         SpaceToUnderscoreProcessor.process(data)
-#         LowercasePostprocessor.postprocess(data)
-        
-#         return data
 
