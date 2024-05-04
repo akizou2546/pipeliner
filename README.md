@@ -1,2 +1,2 @@
 # pipeline
-A data pipeline with polars
+A data pipeline.
