@@ -74,6 +74,7 @@ class Paths:
     def map(self):
         return os.path.join(self.output_dir, "map.html")
 
+
 @dataclass
 class Data:
     # 入力
@@ -194,17 +195,28 @@ class Writer:
         )
 
     @classmethod
-    def write_map(cls, geodataframes: dict[str, gpd.GeoDataFrame], map_path: str, fields: dict[str, list[str]]):
+    def write_map(
+        cls,
+        geodataframes: dict[str, gpd.GeoDataFrame],
+        map_path: str,
+        fields: dict[str, list[str]],
+    ):
         map = folium.Map(
-            location=[list(geodataframes.values())[0]['geometry'].to_crs("EPSG:3857").centroid.y.mean(), list(geodataframes.values())[0]['geometry'].to_crs("EPSG:3857").centroid.x.mean()], zoom_start=10
+            location=[
+                list(geodataframes.values())[0]["geometry"]
+                .to_crs("EPSG:3857")
+                .centroid.y.mean(),
+                list(geodataframes.values())[0]["geometry"]
+                .to_crs("EPSG:3857")
+                .centroid.x.mean(),
+            ],
+            zoom_start=10,
         )
 
         # GeoDataFrameを地図に追加する
         # 地図にGeoDataFrameを追加する
         for name, geodataframe in geodataframes.items():
-            popup = folium.GeoJsonPopup(
-                fields=fields[name]
-            )
+            popup = folium.GeoJsonPopup(fields=fields[name])
             folium.GeoJson(geodataframe.to_json(), name=name, popup=popup).add_to(map)
 
         # レイヤー コントロールを追加する
