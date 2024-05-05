@@ -5,7 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pipeliner"
 version = "2024.0.0"
-dependencies = ["polars", "xlsx2csv"]
+dependencies = [
+  "polars",
+  "pyarrow",
+  "xlsx2csv",
+  "geopandas",
+  "pyogrio",
+  "folium",
+]
 requires-python = ""
 authors = [{ name = "akizou2546", email = "akizou2546@gmail.com" }]
 description = "A data pipeline."
