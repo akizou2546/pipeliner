@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "id_info_value_geometry",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::3857" } },
+"features": [
+{ "type": "Feature", "properties": { "ID": "1", "LAT": "35.6814279", "LONG": "139.7671784", "VALUE1": 150.0, "VALUE2": 85.0 }, "geometry": { "type": "Point", "coordinates": [ 139.7671784, 35.6814279 ] } },
+{ "type": "Feature", "properties": { "ID": "2", "LAT": "35.7140332", "LONG": "139.7770907", "VALUE1": 250.0, "VALUE2": 75.0 }, "geometry": { "type": "Point", "coordinates": [ 139.7770907, 35.7140332 ] } },
+{ "type": "Feature", "properties": { "ID": "3", "LAT": "35.68964035", "LONG": "139.7005604", "VALUE1": 200.0, "VALUE2": 80.0 }, "geometry": { "type": "Point", "coordinates": [ 139.7005604, 35.68964035 ] } }
+]
+}
