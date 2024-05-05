@@ -3,6 +3,8 @@ import os
 import sys
 from dataclasses import dataclass, field
 
+import folium
+import geopandas as gpd
 import polars as pl
 
 
@@ -49,6 +51,10 @@ class Paths:
         return os.path.join(self.input_dir, "id.xlsx")
 
     @property
+    def info(self):
+        return os.path.join(self.model_dir, "info.csv")
+
+    @property
     def sample(self):
         return os.path.join(self.model_dir, "sample.csv")
 
@@ -57,21 +63,28 @@ class Paths:
         return glob.glob(os.path.join(self.model_dir, "sample", "*_sample.csv"))
 
     @property
-    def id_value(self):
-        return os.path.join(self.output_dir, "id_value.csv")
+    def id_info_value(self):
+        return os.path.join(self.output_dir, "id_info_value.csv")
 
+    @property
+    def id_info_value_geometry(self):
+        return os.path.join(self.output_dir, "id_info_value_geometry.geojson")
+
+    @property
+    def map(self):
+        return os.path.join(self.output_dir, "map.html")
 
 @dataclass
 class Data:
     # 入力
     id: pl.DataFrame = field(default_factory=pl.DataFrame)
-
-    # 中間
+    info: pl.DataFrame = field(default_factory=pl.DataFrame)
     sample: pl.DataFrame = field(default_factory=pl.DataFrame)
     samples: pl.DataFrame = field(default_factory=pl.DataFrame)
 
     # 出力
-    id_value: pl.DataFrame = field(default_factory=pl.DataFrame)
+    id_info_value: pl.DataFrame = field(default_factory=pl.DataFrame)
+    id_info_value_geometry: gpd.GeoDataFrame = field(default_factory=gpd.GeoDataFrame)
 
 
 class Reader:
@@ -79,6 +92,8 @@ class Reader:
     def read_data(cls, paths: Paths, data: Data):
         data.id = cls.read_excel(paths.id)
         print(data.id.head())
+        data.info = cls.read_csv(paths.info)
+        print(data.info.head())
         data.sample = cls.read_csv(paths.sample)
         print(data.sample.head())
         data.samples = cls.read_csvs(paths.samples, data.id)
@@ -87,7 +102,12 @@ class Reader:
 
     @classmethod
     def read_excel(cls, excel_path: str):
-        return pl.read_excel(excel_path, sheet_name="sample", read_options={"skip_rows": 5}, infer_schema_length=0)
+        return pl.read_excel(
+            excel_path,
+            sheet_name="sample",
+            read_options={"skip_rows": 5},
+            infer_schema_length=0,
+        )
 
     @classmethod
     def read_csv(cls, csv_path: str):
@@ -123,8 +143,19 @@ class Processor:
     @classmethod
     def process_data(cls, data: Data):
         id_value = cls.group_by_id(data.sample)
-        data.id_value = data.id.join(id_value, how="left", on=["ID"])
-        print(data.id_value.head())
+        data.id_info_value = data.id.join(
+            data.info.unique(["ID"]), how="left", on=["ID"]
+        ).join(id_value, how="left", on=["ID"])
+        print(data.id_info_value.head())
+        # data.id_info_value_geometry = gpd.GeoDataFrame(
+        #     data.id_info_value.to_pandas(),
+        #     geometry=gpd.points_from_xy(
+        #         data.id_info_value["LONG"].to_pandas(),
+        #         data.id_info_value["LAT"].to_pandas(),
+        #         crs="EPSG:3857", # crs="EPSG:6668" or crs="EPSG:4326" or crs="EPSG:3857"
+        #     ),
+        # )
+        # print(data.id_info_value_geometry.head())
         return data
 
     @classmethod
@@ -143,9 +174,40 @@ class Processor:
 class Writer:
     @classmethod
     def write_data(cls, data: Data, paths: Paths):
-        cls.write_csv(data.id_value, paths.id_value)
+        cls.write_csv(data.id_info_value, paths.id_info_value)
+        # cls.write_geojson(data.id_info_value_geometry, paths.id_info_value_geometry)
+        # cls.write_map({"id": data.id_info_value_geometry}, paths.map, {"id": ["ID", "VALUE1"]})
         return None
 
     @classmethod
     def write_csv(cls, dataframe: pl.DataFrame, csv_path: str):
         return dataframe.write_csv(csv_path, include_bom=True)
+
+    @classmethod
+    def write_geojson(cls, geodataframe: gpd.GeoDataFrame, geojson_path: str):
+        return geodataframe.to_file(
+            geojson_path,
+            encoding="utf-8",
+            driver="GeoJSON",
+            index=False,
+            engine="pyogrio",
+        )
+
+    @classmethod
+    def write_map(cls, geodataframes: dict[str, gpd.GeoDataFrame], map_path: str, fields: dict[str, list[str]]):
+        map = folium.Map(
+            location=[list(geodataframes.values())[0]['geometry'].to_crs("EPSG:3857").centroid.y.mean(), list(geodataframes.values())[0]['geometry'].to_crs("EPSG:3857").centroid.x.mean()], zoom_start=10
+        )
+
+        # GeoDataFrameを地図に追加する
+        # 地図にGeoDataFrameを追加する
+        for name, geodataframe in geodataframes.items():
+            popup = folium.GeoJsonPopup(
+                fields=fields[name]
+            )
+            folium.GeoJson(geodataframe.to_json(), name=name, popup=popup).add_to(map)
+
+        # レイヤー コントロールを追加する
+        folium.LayerControl().add_to(map)
+
+        map.save(map_path)
