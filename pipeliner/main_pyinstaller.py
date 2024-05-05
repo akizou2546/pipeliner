@@ -8,6 +8,7 @@ if __name__ == "__main__":
             "--onefile",
             "--noconfirm",
             "--clean",
+            "--hiddenimport=pyarrow",
             "--hiddenimport=xlsx2csv",
         ]
     )
