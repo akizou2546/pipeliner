@@ -1,8 +1,5 @@
-import os
-import sys
-from pipeline import main
-
+# pip install -e .[exe]で関連パッケージをインストール
 if __name__ == "__main__":
-    current_working_dir_path = os.path.join(os.path.dirname(sys.argv[0]), os.path.pardir)
+    from pipeline import main
 
-    main(current_working_dir_path=current_working_dir_path)
+    main()

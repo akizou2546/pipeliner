@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pipeline"
+version = "2024.0.0"
+dependencies = [
+  "polars",
+  "xlsx2csv"
+]
+requires-python = ""
+authors = [
+  {name = "akizou2546", email = "akizou2546@gmail.com"}
+]
+description = "A data pipeline."
+readme = "README.md"
+license = {file = "LICENSE.txt"}
+keywords = ["polars"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Programming Language :: Python",
+  "Private :: Do Not UploadPrivate ::"
+]
+
+[project.optional-dependencies]
+exe = [
+    "pyinstaller"
+]
+
+[project.urls]
+Repository = "https://github.com/akizou2546/pipeline.git"
+
+[project.scripts]
+pipeline = "pipeline:main"
+
+[tool.setuptools]
+packages = ["pipeline"]

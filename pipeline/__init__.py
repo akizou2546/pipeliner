@@ -1,6 +1,3 @@
-from pipeline.pipeline import main, Reader
+from .pipeline import Reader, main
 
-__all__ = [
-    "main",
-    "Reader"
-]
+__all__ = ["main", "Reader"]
