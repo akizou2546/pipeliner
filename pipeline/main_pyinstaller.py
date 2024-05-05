@@ -1,4 +1,3 @@
-# python ./pipeline/make_exe.pyで実行
 if __name__ == "__main__":
     import PyInstaller.__main__
 
