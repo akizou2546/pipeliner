@@ -1,4 +1,4 @@
-# pipeline
+# pipeliner
 A data pipeline.
 
 # 使い方
@@ -21,6 +21,6 @@ A data pipeline.
     ```
 1. pyinstallerでexeファイルを作成する
     ```
-    python ./pipeline/main_pyinstaller.py
+    python ./pipeliner/main_pyinstaller.py
     ```
 1. 

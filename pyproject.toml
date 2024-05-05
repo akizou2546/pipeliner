@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pipeline"
+name = "pipeliner"
 version = "2024.0.0"
 dependencies = ["polars", "xlsx2csv"]
 requires-python = ""
@@ -22,10 +22,10 @@ classifiers = [
 exe = ["pyinstaller"]
 
 [project.urls]
-Repository = "https://github.com/akizou2546/pipeline.git"
+Repository = "https://github.com/akizou2546/pipeliner.git"
 
 [project.scripts]
-pipeline = "pipeline:main"
+pipeliner = "pipeliner:main"
 
 [tool.setuptools]
-packages = ["pipeline"]
+packages = ["pipeliner"]
