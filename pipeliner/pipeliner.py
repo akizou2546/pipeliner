@@ -63,6 +63,10 @@ class Paths:
         return glob.glob(os.path.join(self.model_dir, "sample", "*_sample.csv"))
 
     @property
+    def id_id_relation(self):
+        return os.path.join(self.model_dir, "id_id_relation.csv")
+
+    @property
     def id_info_value(self):
         return os.path.join(self.output_dir, "id_info_value.csv")
 
@@ -86,6 +90,8 @@ class Data:
     # 出力
     id_info_value: pl.DataFrame = field(default_factory=pl.DataFrame)
     id_info_value_geometry: gpd.GeoDataFrame = field(default_factory=gpd.GeoDataFrame)
+    id_id_relation: pl.DataFrame = field(default_factory=pl.DataFrame)
+    id_id_relation_geometry: gpd.GeoDataFrame = field(default_factory=gpd.GeoDataFrame)
 
 
 class Reader:
@@ -99,6 +105,8 @@ class Reader:
         print(data.sample.head())
         data.samples = cls.read_csvs(paths.samples, data.id)
         print(data.samples.head())
+        data.id_id_relation = cls.read_csv(paths.id_id_relation)
+        print(data.id_id_relation.head())
         return data
 
     @classmethod
@@ -148,15 +156,17 @@ class Processor:
             data.info.unique(["ID"]), how="left", on=["ID"]
         ).join(id_value, how="left", on=["ID"])
         print(data.id_info_value.head())
-        # data.id_info_value_geometry = gpd.GeoDataFrame(
-        #     data.id_info_value.to_pandas(),
-        #     geometry=gpd.points_from_xy(
-        #         data.id_info_value["LONG"].to_pandas(),
-        #         data.id_info_value["LAT"].to_pandas(),
-        #         crs="EPSG:3857", # crs="EPSG:6668" or crs="EPSG:4326" or crs="EPSG:3857"
-        #     ),
-        # )
-        # print(data.id_info_value_geometry.head())
+        data.id_info_value_geometry = gpd.GeoDataFrame(
+            data.id_info_value.to_pandas(),
+            geometry=gpd.points_from_xy(
+                data.id_info_value["LONG"].to_pandas(),
+                data.id_info_value["LAT"].to_pandas(),
+                crs="EPSG:3857",  # crs="EPSG:6668" or crs="EPSG:4326" or crs="EPSG:3857"
+            ),
+        )
+        print(data.id_info_value_geometry.head())
+        data.id_id_relation_geometry = cls.make_geodataframe(data.id_id_relation)
+        print(data.id_id_relation_geometry.head())
         return data
 
     @classmethod
@@ -171,13 +181,27 @@ class Processor:
         )
         return id_value
 
+    @classmethod
+    def make_geodataframe(cls, id_id_relation: pl.DataFrame):
+        id_id_relation_geometry = (
+            sample.with_columns(
+                [pl.col("VALUE1").cast(float), pl.col("VALUE2").cast(float)]
+            )
+            .group_by(["ID"])
+            .agg([pl.col("VALUE1").mean(), pl.col("VALUE2").mean()])
+            .sort(["ID"])
+        )
+        return id_id_relation_geometry
+
 
 class Writer:
     @classmethod
     def write_data(cls, data: Data, paths: Paths):
         cls.write_csv(data.id_info_value, paths.id_info_value)
-        # cls.write_geojson(data.id_info_value_geometry, paths.id_info_value_geometry)
-        # cls.write_map({"id": data.id_info_value_geometry}, paths.map, {"id": ["ID", "VALUE1"]})
+        cls.write_geojson(data.id_info_value_geometry, paths.id_info_value_geometry)
+        cls.write_map(
+            {"id": data.id_info_value_geometry}, paths.map, {"id": ["ID", "VALUE1"]}
+        )
         return None
 
     @classmethod
